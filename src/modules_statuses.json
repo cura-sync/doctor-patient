@@ -1,0 +1,6 @@
+{
+    "User": true,
+    "Prescriptions": true,
+    "Bills": true,
+    "AudioTranslation": true
+}

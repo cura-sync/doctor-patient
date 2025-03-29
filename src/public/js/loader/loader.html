@@ -1,0 +1,76 @@
+<style>
+  .mobileBG {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 11000;
+    opacity: 0.5;
+    -webkit-transform: translate3d(0,0,0);
+    transform: translate3d(0,0,0);
+  }
+  
+  @media only screen and (max-width: 500px) and (min-width: 320px) {
+    .mobileBG {
+      margin-top: unset !important;
+      margin-left: inherit !important;
+    }
+  }
+  
+  .dot-loader {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .dot {
+    width: 30px;
+    height: 30px;
+    background-color: #7fbfb4;
+    border-radius: 50%;
+    animation: fade 1s infinite ease-in-out;
+  }
+  
+  .dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  .dot:nth-child(3) {
+    animation-delay: 0.4s;
+    background-color: #a4d1c8;
+  }
+  
+  @keyframes fade {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(0.8);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  </style>
+  
+  <div ng-controller="loadController as lc">
+    <div class="mobileBG"></div>
+    <div class="row" style="
+      position: relative;
+      margin-top: -70px;
+      background-color: rgba(255, 255, 255, 0);
+      z-index: 11000;
+      width: 100%;
+      height: 100%;
+    ">
+      <div class="col l12 s12 m12">
+        <div class="row justify-content-center" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); -webkit-transform: translate(-50%, -50%)">
+          <div class="dot-loader">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

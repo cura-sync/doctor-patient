@@ -1,0 +1,11 @@
+{
+    "name": "AudioTranslation",
+    "alias": "audiotranslation",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\AudioTranslation\\Providers\\AudioTranslationServiceProvider"
+    ],
+    "files": []
+}
