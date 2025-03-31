@@ -27,7 +27,7 @@ class DocumentContent extends Model
         $document_content->document_id = $document_id;
         $document_content->original_text = $original_text;
         $document_content->simplified_text = $document_translation;
-        $document_content->medicine_text = $document_medicine;
+        $document_content->document_medication = $document_medicine;
         $document_content->created_at = time();
         $document_content->updated_at = time();
         

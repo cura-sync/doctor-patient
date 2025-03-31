@@ -59,7 +59,6 @@ class PrescriptionHandler extends Controller
         } else {
             // Translation without salt analysis
             $document_translation = $this->translatePrescription($document->document_name);
-            dd($document_translation);
             $original_text = $document_translation['original_text'];
             $document_translation = $document_translation['translated_prescription'];
             if ($document_translation == null) {
