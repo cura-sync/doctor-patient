@@ -3,13 +3,13 @@
 namespace Modules\Prescriptions\Http\Requests;
 
 use App\Http\Controllers\Controller;
-use App\Models\DPContants;
+use App\Models\DocumentContent;
+use App\Models\Documents;
 use App\Models\Prescriptions;
 use App\Models\Transactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use League\CommonMark\Node\Block\Document;
 
 class PrescriptionHandler extends Controller
 {
@@ -26,33 +26,27 @@ class PrescriptionHandler extends Controller
             ], 400);
         }
 
+        $document = Documents::saveDocument(Documents::TYPE_PRESCRIPTION, $request->document_name, $request->document);
+
         // Initialize a new transaction
         $transaction = new Transactions();
         $transaction->user_id = Auth::user()->id;
-        $transaction->transaction_type = Transactions::TRANSACTION_TYPE_PRESCRIPTIONS;
-                
-        // Update document name to avoid duplicacy
-        $document_name = pathinfo($request->document_name, PATHINFO_FILENAME) . '_' . time() . '.' . pathinfo($request->document_name, PATHINFO_EXTENSION);
-
-        $this->saveDocument(DPContants::DOCUMENT_TYPE_DOCUMENT, $document_name, $request->document);
-
-        // Register prescription
-        $prescription = new Prescriptions();
-        $prescription->user_id = Auth::user()->id;
-        $prescription->prescription_document_name = $document_name;
-        $prescription->translation_success = Prescriptions::PRESCRIPTION_TRANSLATION_FAILED;
-        
-        if (! $prescription->save()) {
+        $transaction->document_id = $document->id;
+        $transaction->resource_type = Transactions::RESOURCE_PRESCRIPTION_TRANSLATION;
+        $transaction->success = Transactions::TRANSACTION_STATUS_FAILED;
+        $transaction->created_at = now();
+        $transaction->updated_at = now();
+        if (! $transaction->save()) {
             return response()->json([
                 'error' => true,
-                'message' => 'Failed to register prescription.'
+                'message' => 'Failed to create transaction.'
             ], 500);
         }
 
         // Send API request to translate prescription
         if ($request->salt_analysis == true) {
             // Translation with salt analysis
-            $translation_result = $this->translatePrescriptionWithMedicine($document_name);
+            $translation_result = $this->translatePrescriptionWithMedicine($document->document_name);
             $original_text = $translation_result['original_text'];
             $document_translation = $translation_result['translated_prescription'];
             $document_medicine = $translation_result['translated_medicine'];
@@ -64,7 +58,7 @@ class PrescriptionHandler extends Controller
             }
         } else {
             // Translation without salt analysis
-            $document_translation = $this->translatePrescription($document_name);
+            $document_translation = $this->translatePrescription($document->document_name);
             $original_text = $document_translation['original_text'];
             $document_translation = $document_translation['translated_prescription'];
             if ($document_translation == null) {
@@ -75,31 +69,27 @@ class PrescriptionHandler extends Controller
             }
         }
 
-        // Update prescription translation to success
-        $prescription->translation_success = Prescriptions::PRESCRIPTION_TRANSLATION_SUCCESS;
-        if (! $prescription->save()) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Failed to update prescription.'
-            ], 500);
-        }
-
-        $transaction->prescription_transalation_id = $prescription->id;
+        $transaction->success = Transactions::TRANSACTION_STATUS_SUCCESS;
+        $transaction->updated_at = now();
 
         if (! $transaction->save()) {
             return response()->json([
                 'error' => true,
-                'message' => 'Failed to create transaction.'
+                'message' => 'Failed to update transaction.'
             ], 500);
         }
 
-        $this->saveDocumentContents($transaction->id, $original_text, $document_translation, $document_medicine);
+        $document_content = DocumentContent::saveDocumentContents($document->id, $original_text, $document_translation, $document_medicine);
+        $data = [
+            'document_name' => $request->document_name,
+            'original_text' => $original_text,
+            'document_translation' => $document_translation,
+            'salt_analysis' => $document_medicine
+        ];
 
         return response()->json([
-            'success' => 'Document translated successfully', 
-            'document_name' => $request->document_name,
-            'document_translation' => $document_translation,
-            'document_medicine' => $document_medicine ? $document_medicine : null
+            'success' => 'Document translated successfully',
+            'data' => $data
         ]);
     }
 

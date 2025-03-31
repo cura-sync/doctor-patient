@@ -15,7 +15,11 @@ class GoogleToken extends Model
 
     protected $casts = [
         'expires_in' => 'datetime',
-    ];    
+    ];
+
+    public $timestamps = true;
+    
+    protected $dateFormat = 'U';
 
     public function user()
     {

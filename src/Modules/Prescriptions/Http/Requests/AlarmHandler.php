@@ -3,15 +3,15 @@
 namespace Modules\Prescriptions\Http\Requests;
 
 use App\Http\Controllers\Controller;
-use App\Models\AlertScheduler;
+use App\Models\Documents;
 use App\Models\DPContants;
+use App\Models\MedicationAlerts;
 use App\Models\MedicineAlert;
 use App\Models\Transactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Modules\Prescriptions\Http\Requests\PrescriptionHandler;
 
 class AlarmHandler extends Controller
 {
@@ -30,17 +30,23 @@ class AlarmHandler extends Controller
             ], 400);
         }
 
+        $document = Documents::saveDocument(Documents::TYPE_PRESCRIPTION, $request->document_name, $request->document);
+
         // Initialize a new transaction
         $transaction = new Transactions();
         $transaction->user_id = Auth::user()->id;
-        $transaction->transaction_type = Transactions::TRANSACTION_TYPE_ALARMS;
-        
-        // Update document name to avoid duplicacy
-        $document_name = pathinfo($request->document_name, PATHINFO_FILENAME) . '_' . time() . '.' . pathinfo($request->document_name, PATHINFO_EXTENSION);
-        $this->saveDocument(DPContants::DOCUMENT_TYPE_DOCUMENT, $document_name, $request->document);
+        $transaction->document_id = $document->id;
+        $transaction->resource_type = Transactions::RESOURCE_DOSAGE_ALERTS;
+        $transaction->created_at = now();
+        $transaction->updated_at = now();
+        if (! $transaction->save()) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Failed to save transaction.'
+            ], 500);
+        }
 
-        $dosage_details = $this->fetchDosageFromDocument($document_name);
-
+        $dosage_details = $this->fetchDosageFromDocument($document->document_name);
         if (! $dosage_details) {
             return response()->json([
                 'error' => true,
@@ -51,20 +57,22 @@ class AlarmHandler extends Controller
         $original_text = $dosage_details['original_text'];
         $dosage = $dosage_details['dosage'];
 
-        $alarm_details = new MedicineAlert();
-        $alarm_details->user_id = Auth::user()->id;
-        $alarm_details->document_name = $document_name;
-        $alarm_details->alert_data = null;
-
-        if (! $alarm_details->save()) {
+        $medication_details = new MedicationAlerts();
+        $medication_details->user_id = Auth::user()->id;
+        $medication_details->document_id = $document->id;
+        $medication_details->transaction_id = $transaction->id;
+        $medication_details->fetched_medication_data = $dosage;
+        $medication_details->created_at = now();
+        $medication_details->updated_at = now();
+        if (! $medication_details->save()) {
             return response()->json([
                 'error' => true,
                 'message' => 'Failed to save alarm details.'
             ], 500);
         }
 
-        $transaction->dosage_alert_id = $alarm_details->id;
-
+        $transaction->status = Transactions::TRANSACTION_STATUS_PENDING;
+        $transaction->updated_at = now();
         if (! $transaction->save()) {
             return response()->json([
                 'error' => true,
@@ -72,13 +80,15 @@ class AlarmHandler extends Controller
             ], 500);
         }
 
-        $this->saveDosageAlarms($transaction->id, $original_text, json_encode($dosage, true));
+        $data = [
+            'transaction_id' => $transaction->id,
+            'dosage' => json_decode($dosage, true),
+        ];
 
         return response()->json([
             'success' => true,
             'message' => 'Dosage details fetched successfully',
-            'transaction_id' => $transaction->id,
-            'dosage' => json_decode($dosage, true),
+            'data' => $data,
         ]);
 
 
@@ -132,36 +142,6 @@ class AlarmHandler extends Controller
     }
 
     /**
-    * Save document contents to database
-     */
-    public function saveDosageAlarms($transaction_registered_id, $original_text, $dosage_details)
-    {
-        $document_contents = json_encode(
-            [
-                'document_translation' => $dosage_details ?? null
-            ]
-        );
-
-        $document = DB::table('document_contents')->insert([
-            'transaction_registered_id' => $transaction_registered_id,
-            'original_text' => $original_text,
-            'translated_text' => $document_contents
-        ]);
-
-        if (! $document) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Failed to save document contents.'
-            ], 500);
-        } else {
-            return response()->json([
-                'success' => true,
-                'message' => 'Document contents saved successfully',
-            ], 200);
-        }
-    }
-
-    /**
     * Save dosage details to database
      */
     public function saveDosage(Request $request)
@@ -201,18 +181,9 @@ class AlarmHandler extends Controller
             $details['schedule'] = $newSchedule;
         }
 
-        $transaction = Transactions::find($transaction_id);
-        if (!$transaction) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Transaction not found.'
-            ], 404);
-        }
-
-        $alert_data = MedicineAlert::where('id', $transaction->dosage_alert_id)->update([
-            'alert_data' => json_encode($document_dosage)
+        $alert_data = MedicationAlerts::where('transaction_id', $transaction_id)->update([
+            'medication_data' => json_encode($document_dosage, true),
         ]);
-
         if (!$alert_data) {
             return response()->json([
                 'error' => true,
@@ -228,17 +199,17 @@ class AlarmHandler extends Controller
 
     public function getCalendarDosage(Request $request)
     {
-        $alerts = MedicineAlert::where('user_id', Auth::user()->id)
-            ->whereNotNull('alert_data')
+        $alerts = MedicationAlerts::where('user_id', Auth::user()->id)
+            ->whereNotNull('medication_data')
             ->get();
 
         $formatted_data = [];
         $daily_medicine_count = []; // Track medicines per day
 
         foreach ($alerts as $alert) {
-            $alert_data = is_string($alert->alert_data) ? 
-                json_decode($alert->alert_data, true) : 
-                $alert->alert_data;
+            $alert_data = is_string($alert->medication_data) ? 
+                json_decode($alert->medication_data, true) : 
+                $alert->medication_data;
 
             if ($alert_data) {
                 foreach ($alert_data as $medicine => $details) {

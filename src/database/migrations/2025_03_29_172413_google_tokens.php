@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('medicine_alerts', function (Blueprint $table) {
+        Schema::create('google_tokens', function (Blueprint $table) {
             $table->id()->primary();
             $table->unsignedBigInteger('user_id');
-            $table->string('document_name');
-            $table->json('alert_data');
-            $table->timestamps();
-        
+            $table->string('access_token');
+            $table->string('refresh_token');
+            $table->integer('expires_at');
+            $table->integer('created_at');
+            $table->integer('updated_at');
+
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('medicine_alerts');
+        Schema::dropIfExists('google_tokens');
     }
 };
