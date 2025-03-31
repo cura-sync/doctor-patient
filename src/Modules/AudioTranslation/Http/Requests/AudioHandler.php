@@ -2,10 +2,8 @@
 
 namespace Modules\AudioTranslation\Http\Requests;
 
-use App\Http\Controllers\Controller;
 use App\Models\AudioContent;
-use App\Models\AudioFiles;
-use App\Models\DPContants;
+use App\Models\Documents;
 use App\Models\Transactions;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
@@ -29,64 +27,54 @@ class AudioHandler extends FormRequest
     public function processRequest(Request $request)
     {
         $audioData = $request->audio_file;
-            
+        
+        $document = Documents::saveDocument(Documents::TYPE_AUDIO, $request->audio_filename, $audioData);
+
         // Initialize a new transaction
         $transaction = new Transactions();
         $transaction->user_id = Auth::user()->id;
-        $transaction->transaction_type = Transactions::TRANSACTION_TYPE_AUDIO;
-
-        // Generate unique filename to prevent overwrites
-        $audio_filename = pathinfo($request->audio_filename, PATHINFO_FILENAME) . '_' . time() . '.' . pathinfo($request->audio_filename, PATHINFO_EXTENSION);
-        Controller::saveDocument(DPContants::DOCUMENT_TYPE_AUDIO, $audio_filename, $audioData);
-
-        // Register the uploaded audio file
-        $audioFile = new AudioFiles();
-        $audioFile->file_name = $audio_filename;
-        $audioFile->translation_success = AudioFiles::TRANSLATION_SUCCESS_FAILED;
-        
-        if (!$audioFile->save()) {
+        $transaction->document_id = $document->id;
+        $transaction->resource_type = Transactions::RESOURCE_AUDIO_TRANSLATION;
+        $transaction->success = Transactions::TRANSACTION_STATUS_FAILED;
+        $transaction->created_at = time();
+        $transaction->updated_at = time();
+        if (! $transaction->save()) {
             return response()->json([
                 'error' => true,
-                'message' => 'Failed to register audio file.'
+                'message' => 'Failed to create transaction.'
             ], 500);
         }
 
         // Get audio summary
-        $translation_response = $this->getAudioSummary($audio_filename);
+        $translation_response = $this->getAudioSummary($document->document_name);
         if ($translation_response == null) {
             return response()->json([
                 'error' => true,
                 'message' => 'Failed to get audio summary.'
             ], 500);
-        } else {
-            $audioFile->translation_success = AudioFiles::TRANSLATION_SUCCESS_SUCCESS;
-            if (!$audioFile->save()) {
-                return response()->json([
-                    'error' => true,
-                    'message' => 'Failed to save audio file.'
-                ], 500);
-            }
         }
 
-        // Update the transaction with the audio file id
-        $transaction->audio_conversion_id = $audioFile->id;
-        if (!$transaction->save()) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Failed to save transaction.'
-            ], 500);
-        }
-
-        // Update the audio contents in db
+        // Update the audio contents
         $audioContent = new AudioContent();
-        $audioContent->audio_file_id = $audioFile->id;
-        $audioContent->transaction_registered_id = $transaction->id;
-        $audioContent->original_transcript = $translation_response['original_text'];
-        $audioContent->simplified_data = $translation_response['summary'];
+        $audioContent->document_id = $document->id;
+        $audioContent->original_transcription = $translation_response['original_text'];
+        $audioContent->simplified_transcription = $translation_response['summary'];
+        $audioContent->prescription_content = null;
+        $audioContent->created_at = time();
+        $audioContent->updated_at = time();
         if (!$audioContent->save()) {
             return response()->json([
                 'error' => true,
                 'message' => 'Failed to save audio content.'
+            ], 500);
+        }
+        
+        $transaction->success = Transactions::TRANSACTION_STATUS_SUCCESS;
+        $transaction->updated_at = time();
+        if (!$transaction->save()) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Failed to save transaction.'
             ], 500);
         }
         
@@ -96,14 +84,18 @@ class AudioHandler extends FormRequest
         //     'summary' => "The patient mentioned having difficulty breathing with a heavy feeling in the chest, especially during physical activity. The doctor suspected asthma and referred the patient to a pulmonary specialist for further testing. No known allergies were reported by the patient. A friendly and reassuring interaction took place during which the doctor acknowledged the symptoms and recommended additional testing to get a clear diagnosis."
         // ];
 
+        $data = [
+            'file_name' => $request->audio_filename,
+            'processed_date' => now()->format('Y-m-d H:i:s'),
+            'original_text' => $translation_response['original_text'],
+            'summary' => $translation_response['summary'],
+        ];
+
         // Return success response with file path
         return response()->json([
             'success' => true,
             'message' => 'Audio file saved successfully',
-            'file_name' => $request->audio_filename,
-            'processed_date' => now()->format('Y-m-d H:i:s'),
-            'translation_response' => $translation_response,
-            // 'translation_response' => $test_translation_response,
+            'data' => $data,
         ]);
     }
 

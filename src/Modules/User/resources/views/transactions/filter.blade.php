@@ -20,14 +20,14 @@
             <label class="block mb-2">Transaction Type</label>
             <select ng-model="main.transaction_type" class="border border-gray-300 rounded-lg w-full p-2 mb-4">
                 <option value="">Select type</option>
-                <option ng-repeat="type in main.transactionTypes" value="@{{type}}">@{{type}}</option>
+                <option ng-repeat="type in main.transactionTypes" value="@{{type.key}}">@{{type.value}}</option>
             </select>
         </div>
         <div>
             <label class="block mb-2">Status</label>
             <select ng-model="main.status" class="border border-gray-300 rounded-lg w-full p-2 mb-4">
                 <option value="">Select status</option>
-                <option ng-repeat="status in main.transactionStatuses" value="@{{status}}">@{{status}}</option>
+                <option ng-repeat="status in main.transactionStatuses" value="@{{status.key}}">@{{status.value}}</option>
             </select>
         </div>
         <div class="flex justify-between">

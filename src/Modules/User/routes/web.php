@@ -24,7 +24,6 @@ Route::middleware([
             Route::get('/', 'index')->name('user.index');
             Route::post('/jxFetchUserTransactions', 'fetchUserTransactions')->name('jxFetchUserTransactions');
             Route::post('/jxDeleteTransaction', 'deleteTransaction')->name('jxDeleteTransaction');
-            Route::post('/jxViewDetails', 'viewDetails')->name('jxViewDetails');
             Route::post('/jxToggleGoogleConnection', 'toggleGoogleConnection')->name('jxToggleGoogleConnection');
             Route::post('/jxCheckGoogleConnection', 'checkGoogleConnection')->name('jxCheckGoogleConnection');
             Route::get('/transactions', 'transactions')->name('user.transactions');

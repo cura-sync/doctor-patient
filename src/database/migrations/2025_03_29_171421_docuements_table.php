@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->boolean('google_calendar_connection_status')->default(false);
+        Schema::create('documents', function (Blueprint $table) {
+            $table->id()->primary();
+            $table->string('document_name');
+            $table->integer('document_type');
+            $table->integer('created_at');
+            $table->integer('updated_at');
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('google_calendar_connection_status');
-        });
+        Schema::dropIfExists('documents');
     }
 };

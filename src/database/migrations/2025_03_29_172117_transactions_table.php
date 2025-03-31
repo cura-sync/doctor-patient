@@ -14,10 +14,14 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id()->primary();
             $table->unsignedBigInteger('user_id');
-            $table->string('transaction_type');
-            $table->timestamps();
+            $table->unsignedBigInteger('document_id');
+            $table->integer('resource_type');
+            $table->boolean('success');
+            $table->integer('created_at');
+            $table->integer('updated_at');
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('document_id')->references('id')->on('documents')->onDelete('cascade');
         });
     }
 

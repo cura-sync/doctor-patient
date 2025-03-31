@@ -14,16 +14,24 @@ use App\Models\Transactions;
         vm.current_page = 1;
         vm.total_pages = 1;
         vm.total_data = [];
-        vm.transactionTypes = <?php echo json_encode(Transactions::TRANSACTION_TYPES); ?>;
-        vm.transactionStatuses = <?php echo json_encode(Transactions::TRANSACTION_STATUSES); ?>;
+        vm.transactionTypes = <?php echo json_encode(Transactions::getResourceType()); ?>;
+        vm.transactionStatuses = <?php echo json_encode(Transactions::getTransactionStatus()); ?>;
         vm.transaction_date_from = '';
         vm.transaction_date_to = '';
         vm.date_filters = {};
         vm.filter_applied = false;
         vm.filter_data = {};
-        vm.transaction_details = [];
+        vm.transaction_details = {
+            headers: [],
+            content: []
+        };
         vm.userGoogleConnection = false;
         vm.userGoogleConnectionStatus = false;
+        vm.activeTab = 0;
+
+        vm.switchTab = function(index) {
+            vm.activeTab = index;
+        };
 
         vm.toggleGoogleConnection = function() {
             vo = {
@@ -119,19 +127,44 @@ use App\Models\Transactions;
         };
 
         vm.viewDetails = function(transaction) {
-            vo = {
-                'transaction' : transaction
+            // Update the modal details based on resource type
+            if (transaction.resource_type === <?php echo Transactions::RESOURCE_PRESCRIPTION_TRANSLATION; ?>) {
+                vm.transaction_details.headers = ['Original Content', 'Simplified Content', 'Salt Analysis'];
+                vm.transaction_details.content = [
+                    $sce.trustAsHtml(transaction.original_content),
+                    $sce.trustAsHtml(transaction.simplified_content),
+                    $sce.trustAsHtml(transaction.medication_content)
+                ];
+            } 
+            else if (transaction.resource_type === <?php echo Transactions::RESOURCE_BILL_ANALYSIS; ?>) {
+                vm.transaction_details.headers = ['Original Content', 'Simplified Bill Content'];
+                vm.transaction_details.content = [
+                    $sce.trustAsHtml(transaction.original_content),
+                    $sce.trustAsHtml(transaction.simplified_content)
+                ];
+            } 
+            else if (transaction.resource_type === <?php echo Transactions::RESOURCE_DOSAGE_ALERTS; ?>) {
+                vm.transaction_details.headers = ['Original Content', 'Medication Data', 'Google Calendar Synced'];
+                vm.transaction_details.content = [
+                    $sce.trustAsHtml(transaction.original_content),
+                    $sce.trustAsHtml(transaction.medication_content),
+                    $sce.trustAsHtml(transaction.google_calendar_synced)
+                ];
+            } 
+            else if (transaction.resource_type === <?php echo Transactions::RESOURCE_AUDIO_TRANSLATION; ?>) {
+                vm.transaction_details.headers = ['Original Transcription', 'Simplified Transcription', 'Prescription Content'];
+                vm.transaction_details.content = [
+                    $sce.trustAsHtml(transaction.original_content),
+                    $sce.trustAsHtml(transaction.simplified_content),
+                    $sce.trustAsHtml(transaction.prescription_content)
+                ];
+            } 
+            else {
+                vm.transaction_details.headers = [];
+                vm.transaction_details.content = [];
             }
-
-            GenericDataService.jx('/user/jxViewDetails', vo)
-                .then(function(response) {
-                    if (response.data.success) {
-                        vm.transaction_details = response.data.transactionDetails;
-                        vm.openDetailsModal();
-                    } else {
-                        messageservice.putError(response.data.message);
-                    }
-                })
+            // Open the modal
+            vm.openDetailsModal();
         }
 
         vm.openDetailsModal = function() {

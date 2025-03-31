@@ -13,49 +13,33 @@
         <!-- Tabs -->
         <div class="bg-gray-100 p-4">
             <div class="flex">
-                <button onclick="switchTab('originalText')" id="originalTextTab" class="tab-button px-8 py-3 text-center border-b-2 border-transparent">Original Text</button>
-                <button onclick="switchTab('prescription')" id="prescriptionTab" class="tab-button px-8 py-3 text-center border-b-2 border-transparent">Prescription Translation</button>
-                <button onclick="switchTab('medicine')" id="medicineTab" class="tab-button px-8 py-3 text-center border-b-2 border-transparent">Salt Analysis</button>
+                <button ng-repeat="(index, header) in main.transaction_details.headers track by index" 
+                        ng-click="main.switchTab(index)" 
+                        ng-id="'tab-' + index"
+                        class="tab-button px-8 py-3 text-center border-b-2" 
+                        ng-class="{'border-transparent': !main.activeTab === index, 'border-blue-500': main.activeTab === index}">
+                    @{{ header }}
+                </button>
             </div>
         </div>
         
         <!-- Tab Content -->
         <div class="p-6">
-            <!-- Original Text Tab -->
-            <div id="originalTextContent" class="tab-content">
-                <h3 class="text-lg font-bold mb-3">Original Text</h3>
-                <p class="text-gray-600" ng-bind-html="main.transaction_details.original_text"></p>
+            <div ng-if="main.transaction_details.content.length > 0">
+                <div ng-repeat="(index, content) in main.transaction_details.content track by index" 
+                     ng-show="main.activeTab === index" 
+                     class="tab-content">
+                    <h3 class="text-lg font-bold mb-3">@{{ main.transaction_details.headers[index] }}</h3>
+                    <p class="text-gray-600" ng-bind-html="content"></p>
+                </div>
             </div>
-            
-            <!-- Prescription Tab -->
-            <div id="prescriptionContent" class="tab-content hidden">
-                <h3 class="text-lg font-bold mb-3">Prescription Translation</h3>
-                <p class="text-gray-600" ng-bind-html="main.transaction_details.prescription_translation"></p>
-            </div>
-            
-            <!-- Medicine Tab -->
-            <div id="medicineContent" class="tab-content hidden">
-                <h3 class="text-lg font-bold mb-3">Medicine Translation</h3>
-                <p class="text-gray-600" ng-bind-html="main.transaction_details.medicine_translation"></p>
+            <div ng-if="main.transaction_details.content.length === 0" class="text-center text-gray-500">
+                No content available
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    function switchTab(tabName) {
-        // Hide all tab contents
-        document.querySelectorAll('.tab-content').forEach(function(tab) {
-            tab.classList.add('hidden');
-        });
-        // Show the selected tab content
-        document.getElementById(tabName + 'Content').classList.remove('hidden');
-        
-        // Remove active class from all tabs
-        document.querySelectorAll('.tab-button').forEach(function(button) {
-            button.classList.remove('border-b-2', 'border-transparent');
-        });
-        // Add active class to the selected tab
-        document.getElementById(tabName + 'Tab').classList.add('border-b-2', 'border-blue-500');
-    }
+    // Remove the old switchTab function as we're now handling this in the controller
 </script>

@@ -59,12 +59,12 @@
                                 <tr class="border-b hover:bg-gray-50" ng-repeat="transaction in main.transactions">
                                     <td class="py-3 px-4">@{{$index + 1 + (main.current_page - 1) * 5}}</td>
                                     <td class="py-3 px-4">@{{transaction.document_name}}</td>
-                                    <td class="py-3 px-4">@{{transaction.transaction_date}}</td>
-                                    <td class="py-3 px-4">@{{transaction.transaction_type}}</td>
+                                    <td class="py-3 px-4">@{{transaction.transaction_created_at | date:'dd-MMM-yyyy'}}</td>
+                                    <td class="py-3 px-4">@{{transaction.resource_name}}</td>
                                     <td class="py-3 px-4">
                                         <span class="inline-flex items-center px-2 py-1 text-sm font-medium rounded-full 
-                                        @{{ transaction.status == 'Success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                            @{{ transaction.status }}
+                                        @{{ transaction.success == 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                            @{{ transaction.success == 1 ? 'Success' : 'Failed' }}
                                         </span>
                                     </td>
                                     <td class="py-3 px-4">

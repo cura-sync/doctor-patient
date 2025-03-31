@@ -76,12 +76,6 @@ class UserController extends Controller
         return $userHandler->deleteTransaction($request);
     }
 
-    public function viewDetails(Request $request)
-    {
-        $userHandler = new UserHandler();
-        return $userHandler->fetchTransactionDetails($request);
-    }
-
     public function toggleGoogleConnection(Request $request)
     {
         $user = User::where('id', Auth::user()->id)->first();
