@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'MediTranslate') }}</title>
+        <title>{{ config('app.name', 'CuraSync') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -29,20 +29,20 @@
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body class="font-sans antialiased bg-gradient-to-br from-[#f0faf9] to-white min-h-screen">
+    <body class="font-sans antialiased bg-[white] min-h-screen">
         <x-banner />
 
-        <div class="min-h-screen">
+        <div class="min-h-screen flex flex-col">
             @livewire('navigation-menu')
             <!-- Page Content -->
-            <main>
-                {{ $slot }}
+            <main class="flex-grow">
+                @yield('content')
             </main>
+            @include('footer')
         </div>
 
         @stack('modals')
 
         @livewireScripts
     </body>
-    @include('footer')
 </html>

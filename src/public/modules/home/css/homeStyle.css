@@ -1,0 +1,18 @@
+@keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+    animation: marquee 30s linear infinite;
+}
+
+.curasuite-card-text {
+    font-size: 72px;
+    font-weight: 900;
+}
+
+.abstract-image-box {
+    height: 500px;
+    width: 800px;
+}
