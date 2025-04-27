@@ -72,6 +72,10 @@ Route::middleware([
     Route::get('/terms', function () {
         return view('terms');
     })->name('terms');
+
+    Route::get('/playground', function () {
+        return view('playground');
+    })->name('playground');
 });
 
 Route::get('/auth/google', [GoogleCalendarController::class, 'redirectToGoogle']);

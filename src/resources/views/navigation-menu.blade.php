@@ -27,12 +27,36 @@ $currentRoute = request()->route()->getName();
             @endforeach
         </div>
 
-        <!-- Contact Us Button -->
+        <!-- Login and Register Buttons (Not logged in)-->
+        @if(Auth::guest())
         <div class="flex items-center">
-            <a href="{{ route('contact') }}"
-               class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold">
-                Contact Us
+            <a href="{{ route('login') }}"
+            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold">
+                Login
             </a>
+            <a href="{{ route('register') }}"
+            class="px-5 py-2 hover:bg-white hover:text-black text-white rounded-full font-semibold"
+            style="margin-left: 5px;"> 
+                Register
+         </a>
         </div>
+        @else
+        <div class="flex items-center">
+            <a href="{{ route('playground') }}"
+            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold">
+                Playground
+            </a>
+
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+
+                <a href="#" onclick="event.preventDefault(); this.closest('form').submit();"
+                class="px-5 py-2 hover:bg-white hover:text-black text-white rounded-full font-semibold"
+                style="margin-left: 5px;"> 
+                    Log Out
+             </a>
+            </form>
+        </div>
+        @endif
     </div>
 </nav>
