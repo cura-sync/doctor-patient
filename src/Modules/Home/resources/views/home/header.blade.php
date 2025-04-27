@@ -19,7 +19,7 @@
             <p class="text-lg text-gray-600 mb-8">We provide you various treatments from head to toe using the best product, advanced technology, and affordable price</p>
             <div class="flex space-x-4">
                 <a href="#" class="px-6 py-3 rounded-full bg-black text-white font-semibold hover:bg-gray-800">Read More</a>
-                <a href="{{ route('register') }}" class="px-6 py-3 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700">Get Started</a>
+                <a href="{{ route('playground') }}" class="px-6 py-3 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700">Get Started</a>
             </div>
         </div>
         <div class="lg:w-1/2 mt-12 lg:mt-0 relative">

@@ -1,7 +1,9 @@
-<x-guest-layout>
+@extends('layouts.app')
+
+@section('content')
     <x-authentication-card>
         <x-slot name="logo">
-            <img src="{{ asset('resources/med-bridge.png') }}" alt="Medbridge Logo" style="width: 300px; height: 300px;">
+            <img src="{{ asset('resources/logo.png') }}" alt="Medbridge Logo" style="width: 300px; height: 300px;">
         </x-slot>
 
         <x-validation-errors class="mb-4" />
@@ -45,4 +47,4 @@
             </div>
         </form>
     </x-authentication-card>
-</x-guest-layout>
+@endsection
