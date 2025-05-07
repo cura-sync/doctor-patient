@@ -1,5 +1,5 @@
 @if (!empty($breadcrumbs))
-    <nav aria-label="Breadcrumb" class="bg-white px-4 py-3 shadow-sm rounded-lg">
+    <nav aria-label="Breadcrumb" class="px-4 py-3 shadow-sm" style="background-color: #EFF2FB;">
         <ol class="flex items-center space-x-2 text-sm">
             @foreach ($breadcrumbs as $breadcrumb)
                 <li class="flex items-center">

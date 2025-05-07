@@ -48,7 +48,7 @@ $footerLinks = [
         <div class="mt-12 pt-8 border-t border-gray-800">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="flex items-center mb-4 md:mb-0">
-                    <img src="{{ ('resources/logo-navbar.jpeg') }}" alt="CuraSync Logo" class="h-8 w-auto mr-2">
+                    <img src="{{ asset('resources/logo-navbar.jpeg') }}" alt="CuraSync Logo" class="h-8 w-auto mr-2">
                     <span class="text-xl font-semibold">CuraSync</span>
                 </div>
                 <div class="flex space-x-6">

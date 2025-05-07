@@ -1,0 +1,11 @@
+{
+    "name": "Playground",
+    "alias": "playground",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Playground\\Providers\\PlaygroundServiceProvider"
+    ],
+    "files": []
+}

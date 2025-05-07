@@ -19,6 +19,8 @@ Route::prefix('prescriptions')->group(function () {
     Route::controller(PrescriptionsController::class)->group(function () {
         Route::get('/', 'index')->name('prescriptions.index');
         Route::post('/translate', 'translate')->name('jxDocumentTranslate');
+        Route::post('/jxfetchData', 'fetchData')->name('jxfetchData');
+        Route::get('/view/{id}', 'viewTransaction')->name('viewTransaction');
     });
 });
 

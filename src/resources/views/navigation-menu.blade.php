@@ -42,7 +42,7 @@ $currentRoute = request()->route()->getName();
         </div>
         @else
         <div class="flex items-center">
-            <a href="{{ route('playground') }}"
+            <a href="{{ route('playground.index') }}"
             class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold">
                 Playground
             </a>
