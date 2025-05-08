@@ -92,6 +92,7 @@ class AudioHandler extends FormRequest
         // ];
 
         $data = [
+            'transaction_id' => $transaction->id,
             'file_name' => $request->audio_filename,
             'processed_date' => now()->format('Y-m-d H:i:s'),
             'original_text' => $translation_response['original_text'],

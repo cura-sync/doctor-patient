@@ -63,12 +63,12 @@
                 return GenericDataService.jx('/prescriptions/translate', vo) // Send the payload
                     .then(function(response) {
                         vm.successMessage = response.data.success;
-                        vm.document_name = response.data.document_name;
-                        vm.document_translation = response.data.document_translation;
-                        vm.document_medicine = response.data.document_medicine;
+                        vm.document_name = response.data.data.document_name;
+                        vm.document_translation = response.data.data.document_translation;
+                        vm.document_medicine = response.data.data.document_medicine;
                         messageservice.putSuccess(vm.successMessage);
                         vm.scope.loading = false;
-                        vm.scope.$apply();
+                        window.location.href = '/prescriptions/view/' + response.data.data.transaction_id;
                     }).catch(function(error) {
                         vm.error = error.data.message;
                         messageservice.putError(vm.error);
@@ -162,12 +162,10 @@
                     };
                 }
                 vm.scope.loading = false;
-                vm.scope.$apply();
             }).catch(function(error) {
                 vm.error = error.data.message;
                 messageservice.putError(vm.error);
                 vm.scope.loading = false;
-                vm.scope.$apply();
             });
         };
 

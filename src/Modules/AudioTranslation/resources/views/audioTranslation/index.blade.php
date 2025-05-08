@@ -2,7 +2,8 @@
 
 @section('content')
 <x-breadcrumbs :breadcrumbs="$breadcrumbs" />
-    <div class="flex flex-col lg:flex-row gap-6 p-8" style="background-color: #EFF2FB;" ng-app="myApp" ng-controller="MainController as main">
+<div class="flex flex-col lg:flex-row gap-6 p-8" style="background-color: #EFF2FB;" ng-app="myApp" ng-controller="MainController as main">
+    <loading></loading>
         <!-- Left Column -->
         <div class="w-full lg:w-1/3 flex flex-col gap-4">
             <div class="relative bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
@@ -24,12 +25,12 @@
                         <p class="text-xs mt-1 text-gray-400">Formats accepted are .mp3, .wav, .m4a</p>
                     </label>
                 </div>
-                <div ng-show="main.document" class="text-sm text-gray-600 mt-3">
-                    Selected file: <strong>@{{ main.document.name }}</strong>
+                <div ng-show="main.audioFile" class="text-sm text-gray-600 mt-3">
+                    Selected file: <strong>@{{ main.audioFile.name }}</strong>
                 </div>
                 <div class="flex justify-between mt-4">
-                    <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded" ng-click="main.clearDocument()">Cancel</button>
-                    <button class="bg-blue-600 text-white px-4 py-2 rounded" ng-click="main.translateDocument()">Continue</button>
+                    <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded" ng-click="main.clearAudioFile()">Cancel</button>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded" ng-click="main.transcribeAudio()">Continue</button>
                 </div>
             </div>
         </div>

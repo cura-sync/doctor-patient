@@ -9,7 +9,6 @@
         vm.audioFile = null;
         vm.selectedPrescriptionTemplate = null;
         vm.translationResponse = null;
-        vm.activeTab = 'translated';
         vm.transaltion_file_name = null;
         vm.transaltion_processed_date = null;
         vm.gridData = [];
@@ -55,10 +54,10 @@
                             vm.scope.loading = false;
                             if (response.data.success) {
                                 messageservice.putSuccess('Audio transcribed successfully');
-                                vm.translationResponse = response.data.translation_response;
-                                vm.transaltion_file_name = response.data.file_name;
-                                vm.transaltion_processed_date = response.data.processed_date;
-                                vm.toggleOriginalTranslatedText('translated');
+                                vm.translationResponse = response.data.data.translation_response;
+                                vm.transaltion_file_name = response.data.data.file_name;
+                                vm.transaltion_processed_date = response.data.data.processed_date;
+                                window.location.href = '/audioTranslation/view/' + response.data.data.transaction_id;
                             } else {
                                 messageservice.putError('Failed to transcribe audio');
                             }
@@ -90,12 +89,10 @@
                     };
                 }
                 vm.scope.loading = false;
-                vm.scope.$apply();
             }).catch(function(error) {
                 vm.error = error.data.message;
                 messageservice.putError(vm.error);
                 vm.scope.loading = false;
-                vm.scope.$apply();
             });
         };
 

@@ -88,6 +88,7 @@ class PrescriptionHandler extends Controller
 
         $document_content = DocumentContent::saveDocumentContents($document->id, $original_text, $document_translation, $document_medicine);
         $data = [
+            'transaction_id' => $transaction->id,
             'document_name' => $request->document_name,
             'original_text' => $original_text,
             'document_translation' => $document_translation,

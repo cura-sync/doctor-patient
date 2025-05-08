@@ -3,6 +3,7 @@
 @section('content')
 <x-breadcrumbs :breadcrumbs="$breadcrumbs" />
     <div class="flex flex-col lg:flex-row gap-6 p-8" style="background-color: #EFF2FB;" ng-app="myApp" ng-controller="MainController as main">
+        <loading></loading>
         <!-- Left Column -->
         <div class="w-full lg:w-1/3 flex flex-col gap-4">
             <div class="relative bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
