@@ -19,6 +19,8 @@ Route::prefix('audioTranslation')->group(function () {
     Route::controller(AudioTranslatorController::class)->group(function () {
         Route::get('/', 'index')->name('audioTranslation.index');
         Route::post('/jxProcessUploadedAudio', 'processUploadedAudio')->name('jxProcessUploadedAudio');
+        Route::post('/jxfetchData', 'fetchData')->name('jxfetchData');
+        Route::get('/view/{id}', 'viewTransaction')->name('audioTranslation.view');
     });
 
     Route::prefix('prescriptionTemplate')->group(function () {
