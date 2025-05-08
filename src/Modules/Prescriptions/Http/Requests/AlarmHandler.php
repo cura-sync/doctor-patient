@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\Http;
 
 class AlarmHandler extends Controller
 {
+    public $flask_api_url;
+
+    public function __construct()
+    {
+        $this->flask_api_url = env('FLASK_API_URL');
+    }
+
     /**
      * Call flask API to fetch dosage details from uploaded document
      */
@@ -134,7 +141,7 @@ class AlarmHandler extends Controller
      */
     public function fetchDosageFromDocument($document_name)
     {
-        $dosage_result = Http::timeout(180)->post('http://127.0.0.1:6000/extract-dosage', [
+        $dosage_result = Http::timeout(180)->post($this->flask_api_url . '/extract-dosage', [
             'document_name' => $document_name,
         ]);
 
