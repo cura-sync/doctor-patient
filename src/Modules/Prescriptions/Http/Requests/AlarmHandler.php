@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\Http;
 
 class AlarmHandler extends Controller
 {
+    public $flask_api_url;
+
+    public function __construct()
+    {
+        $this->flask_api_url = env('FLASK_API_URL');
+    }
+
     /**
      * Call flask API to fetch dosage details from uploaded document
      */
@@ -37,6 +44,7 @@ class AlarmHandler extends Controller
         $transaction->user_id = Auth::user()->id;
         $transaction->document_id = $document->id;
         $transaction->resource_type = Transactions::RESOURCE_DOSAGE_ALERTS;
+        $transaction->success = Transactions::TRANSACTION_STATUS_FAILED;
         $transaction->created_at = now();
         $transaction->updated_at = now();
         if (! $transaction->save()) {
@@ -71,7 +79,7 @@ class AlarmHandler extends Controller
             ], 500);
         }
 
-        $transaction->status = Transactions::TRANSACTION_STATUS_PENDING;
+        $transaction->success = Transactions::TRANSACTION_STATUS_PENDING;
         $transaction->updated_at = now();
         if (! $transaction->save()) {
             return response()->json([
@@ -134,7 +142,7 @@ class AlarmHandler extends Controller
      */
     public function fetchDosageFromDocument($document_name)
     {
-        $dosage_result = Http::timeout(180)->post('http://127.0.0.1:6000/extract-dosage', [
+        $dosage_result = Http::timeout(180)->post($this->flask_api_url . '/extract-dosage', [
             'document_name' => $document_name,
         ]);
 
@@ -182,9 +190,15 @@ class AlarmHandler extends Controller
         }
 
         $alert_data = MedicationAlerts::where('transaction_id', $transaction_id)->update([
-            'medication_data' => json_encode($document_dosage, true),
+            'medication_data' => $document_dosage,
         ]);
-        if (!$alert_data) {
+
+        // Update transaction status to completed
+        $transaction = Transactions::where('id', $transaction_id)->update([
+            'success' => Transactions::TRANSACTION_STATUS_SUCCESS,
+        ]);
+
+        if (!$alert_data || !$transaction) {
             return response()->json([
                 'error' => true,
                 'message' => 'Failed to save alert data.'

@@ -2,5 +2,7 @@
     "User": true,
     "Prescriptions": true,
     "Bills": true,
-    "AudioTranslation": true
+    "AudioTranslation": true,
+    "Home": true,
+    "Playground": true
 }

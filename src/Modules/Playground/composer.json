@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/playground",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Playground\\": "app/",
+            "Modules\\Playground\\Database\\Factories\\": "database/factories/",
+            "Modules\\Playground\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Playground\\Tests\\": "tests/"
+        }
+    }
+}

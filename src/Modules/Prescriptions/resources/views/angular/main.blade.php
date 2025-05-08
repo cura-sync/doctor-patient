@@ -13,10 +13,15 @@
         vm.saltAnalysis = false;
         vm.showMedicineProfile = false;
         vm.showLoginModal = false;
+        vm.gridData = [];
+        vm.pagination = {
+            currentPage: 1,
+            perPage: 10,
+            total: 0,
+            lastPage: 1
+        };
 
-        // Define the functions
         // Handle file change
-
         vm.onFileChange = function(event) {
             var file = event.target.files[0];
             if (file) {
@@ -58,12 +63,12 @@
                 return GenericDataService.jx('/prescriptions/translate', vo) // Send the payload
                     .then(function(response) {
                         vm.successMessage = response.data.success;
-                        vm.document_name = response.data.document_name;
-                        vm.document_translation = response.data.document_translation;
-                        vm.document_medicine = response.data.document_medicine;
+                        vm.document_name = response.data.data.document_name;
+                        vm.document_translation = response.data.data.document_translation;
+                        vm.document_medicine = response.data.data.document_medicine;
                         messageservice.putSuccess(vm.successMessage);
                         vm.scope.loading = false;
-                        vm.scope.$apply();
+                        window.location.href = '/prescriptions/view/' + response.data.data.transaction_id;
                     }).catch(function(error) {
                         vm.error = error.data.message;
                         messageservice.putError(vm.error);
@@ -136,6 +141,41 @@
         vm.closeLoginModal = function() {
             vm.showLoginModal = false; // Hide the modal
         };
+
+        vm.fetchGridData = function(page = 1) {
+            vm.scope.loading = true;
+            vm.pagination.currentPage = page;
+            return GenericDataService.jx('/prescriptions/jxfetchData', {
+                page: vm.pagination.currentPage,
+                per_page: vm.pagination.perPage
+            })
+            .then(function(response) {
+                vm.gridData = response.data.data;
+                if (response.data.pagination) {
+                    vm.pagination = {
+                        total: response.data.pagination.total,
+                        perPage: response.data.pagination.per_page,
+                        currentPage: response.data.pagination.current_page,
+                        lastPage: response.data.pagination.last_page,
+                        from: response.data.pagination.from,
+                        to: response.data.pagination.to
+                    };
+                }
+                vm.scope.loading = false;
+            }).catch(function(error) {
+                vm.error = error.data.message;
+                messageservice.putError(vm.error);
+                vm.scope.loading = false;
+            });
+        };
+
+        vm.changePage = function(page) {
+            if (page >= 1 && page <= vm.pagination.lastPage) {
+                vm.fetchGridData(page);
+            }
+        };
+
+        vm.fetchGridData();
 
         // Add event listener for file input click
         document.getElementById('fileInput').addEventListener('click', function(event) {

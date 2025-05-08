@@ -13,6 +13,13 @@ use Illuminate\Support\Facades\Http;
 
 class PrescriptionHandler extends Controller
 {
+    public $flask_api_url;
+
+    public function __construct()
+    {
+        $this->flask_api_url = env('FLASK_API_URL');
+    }
+
     public function processRequest(Request $request)
     {
         $original_text = null;
@@ -81,6 +88,7 @@ class PrescriptionHandler extends Controller
 
         $document_content = DocumentContent::saveDocumentContents($document->id, $original_text, $document_translation, $document_medicine);
         $data = [
+            'transaction_id' => $transaction->id,
             'document_name' => $request->document_name,
             'original_text' => $original_text,
             'document_translation' => $document_translation,
@@ -95,7 +103,7 @@ class PrescriptionHandler extends Controller
 
     public function translatePrescription($document_name)
     {
-        $translation_response = Http::timeout(180)->post('http://127.0.0.1:6000/translate-prescription', [
+        $translation_response = Http::timeout(180)->post($this->flask_api_url . '/translate-prescription', [
             'document_name' => $document_name,
         ]);
 
@@ -104,7 +112,7 @@ class PrescriptionHandler extends Controller
 
     public function translatePrescriptionWithMedicine($document_name)
     {
-        $translation_response = Http::timeout(180)->post('http://127.0.0.1:6000/translate-prescription-with-medicine', [
+        $translation_response = Http::timeout(180)->post($this->flask_api_url . '/translate-prescription-with-medicine', [
             'document_name' => $document_name,
         ]);
 

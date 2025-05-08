@@ -2,17 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DPContants;
+use App\Models\GoogleToken;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 abstract class Controller
 {
+    public $isUserLoggedIn = false;
+
+    public $isUserGoogleCalendarConnected = false;
+
     public function __construct()
     {
-        $isUserLoggedIn = Auth::check();
-        view()->share('isUserLoggedIn', $isUserLoggedIn);
+        $this->isUserLoggedIn = Auth::check();
+        $this->isUserGoogleCalendarConnected = GoogleToken::isUserGoogleCalendarConnected(Auth::user()->id);
+
+        view()->share([
+            'isUserLoggedIn' => $this->isUserLoggedIn, 
+            'isUserGoogleCalendarConnected' => $this->isUserGoogleCalendarConnected
+        ]);
     }
 
     /**

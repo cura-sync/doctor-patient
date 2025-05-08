@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Http;
 
 class AudioHandler extends FormRequest
 {
+    public $flask_api_url;
+
+    public function __construct()
+    {
+        $this->flask_api_url = env('FLASK_API_URL');
+    }
+
     /**
      * Get the validation rules that apply to the request.
      */
@@ -85,6 +92,7 @@ class AudioHandler extends FormRequest
         // ];
 
         $data = [
+            'transaction_id' => $transaction->id,
             'file_name' => $request->audio_filename,
             'processed_date' => now()->format('Y-m-d H:i:s'),
             'original_text' => $translation_response['original_text'],
@@ -101,7 +109,7 @@ class AudioHandler extends FormRequest
 
     public function getAudioSummary($audio_filename)
     {
-        $translation_response = Http::timeout(180)->post('http://127.0.0.1:6000/audio-to-summary', [
+        $translation_response = Http::timeout(180)->post($this->flask_api_url . '/audio-to-summary', [
             'audio_file' => $audio_filename,
         ]);
 
