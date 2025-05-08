@@ -31,5 +31,9 @@ Route::prefix('alarm')->group(function () {
         Route::post('/jxSaveDosage', 'saveDosage')->name('jxSaveDosage');
         Route::post('/jxGetCalendarDosage', 'getCalendarDosage')->name('jxGetCalendarDosage');
         Route::post('/jxAddDosageToGoogleCalendar', 'addDosageToGoogleCalendar')->name('jxAddDosageToGoogleCalendar');
+        Route::post('/jxfetchData', 'fetchData')->name('jxfetchData');
+        Route::get('/view/{id}', 'viewTransaction')->name('viewTransaction');
+        Route::get('/configure/{id}', 'configureTransaction')->name('configure');
+        Route::post('/jxFetchConfigureData', 'fetchConfigureData')->name('jxFetchConfigureData');
     });
 });

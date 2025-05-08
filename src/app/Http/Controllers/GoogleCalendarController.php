@@ -3,16 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\GoogleToken;
-use App\Models\MedicineAlert;
+use App\Models\MedicationAlerts;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Google\Client as GoogleClient;
 use Google\Service\Calendar;
 use Google\Service\Calendar\Event;
-use Google\Service\Calendar\EventDateTime;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Session;
 
 class GoogleCalendarController extends Controller
 {
@@ -92,9 +90,9 @@ class GoogleCalendarController extends Controller
         $userId = Auth::user()->id;
         $timezone = $request->timezone ?? 'Asia/Kolkata'; // Default to Asia/Kolkata if not provided
 
-        $alerts = MedicineAlert::where('user_id', $userId)
-            ->whereNotNull('alert_data')
-            ->where('google_calendar_sync_status', false)
+        $alerts = MedicationAlerts::where('user_id', $userId)
+            ->whereNotNull('medication_data')
+            ->where('google_calendar_synced', false)
             ->get();
 
         $accessToken = self::refreshAccessToken($userId);
@@ -109,7 +107,7 @@ class GoogleCalendarController extends Controller
         $calendarId = 'primary';
 
         foreach ($alerts as $alert) {
-            $alertData = $alert->alert_data;
+            $alertData = $alert->medication_data;
             
             foreach ($alertData as $medicineName => $medicineDetails) {
                 foreach ($medicineDetails['schedule'] as $scheduleTime) {
@@ -135,7 +133,7 @@ class GoogleCalendarController extends Controller
 
                     try {
                         $service->events->insert($calendarId, $event);
-                        $alert->google_calendar_sync_status = true;
+                        $alert->google_calendar_synced = true;
                         $alert->save();
                     } catch (\Exception $e) {
                         Log::error("Failed to create event for {$medicineName}: " . $e->getMessage());

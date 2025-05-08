@@ -29,6 +29,14 @@
         vm.selectedDate = null;
         vm.medicationDays = {};
         vm.selectedDayMedications = [];
+        vm.gridData = [];
+        vm.pagination = {
+            currentPage: 1,
+            perPage: 10,
+            total: 0,
+            lastPage: 1
+        };
+        vm.showCalendarModal = false;
 
         // Calendar Helper Functions
         vm.calendar = {
@@ -102,9 +110,11 @@
                                 if (!vm.medicationDays[date]) {
                                     vm.medicationDays[date] = [];
                                 }
-                                if (!vm.medicationDays[date].includes(medicine)) {
-                                    vm.medicationDays[date].push(medicine);
-                                }
+                                // Always push even if same medicine is repeated — allow time separation
+                                vm.medicationDays[date].push({
+                                    name: medicine,
+                                    time: vm.calendar.parseDateTime(datetime).time
+                                });
                             }
                         });
                     }
@@ -116,9 +126,10 @@
             const dateKey = vm.calendar.formatDateKey(year, month, day);
             vm.selectedDate = new Date(year, month, day);
             vm.selectedDayMedications = [];
-            
+
             if (vm.medicationDays[dateKey]) {
-                vm.medicationDays[dateKey].forEach(medicine => {
+                vm.medicationDays[dateKey].forEach(entry => {
+                    const medicine = entry.name;
                     const medicineDetails = vm.calendar_dosage[medicine];
                     const scheduleForDay = medicineDetails.schedule
                         .filter(datetime => datetime.startsWith(dateKey))
@@ -130,9 +141,7 @@
                                 originalDateTime: datetime
                             };
                         })
-                        .sort((a, b) => {
-                            return new Date('1970/01/01 ' + a.time) - new Date('1970/01/01 ' + b.time);
-                        });
+                        .sort((a, b) => new Date('1970/01/01 ' + a.time) - new Date('1970/01/01 ' + b.time));
                     
                     if (scheduleForDay.length > 0) {
                         vm.selectedDayMedications.push({
@@ -143,19 +152,18 @@
                     }
                 });
 
-                // Sort medications by their earliest time
                 vm.selectedDayMedications.sort((a, b) => {
                     const timeA = new Date('1970/01/01 ' + a.schedule[0].time);
                     const timeB = new Date('1970/01/01 ' + b.schedule[0].time);
                     return timeA - timeB;
                 });
             }
-            
-            document.getElementById('medication-modal').style.display = 'flex';
+
+            vm.showCalendarModal = true;
         };
 
         vm.closeCalendarModal = function() {
-            document.getElementById('medication-modal').style.display = 'none';
+            vm.showCalendarModal = false;
             vm.selectedDate = null;
             vm.selectedDayMedications = [];
         };
@@ -224,6 +232,21 @@
             reader.readAsDataURL(vm.document); // Read the file as a data URL
         };
 
+        vm.setupConfigureData = function(transaction_id) {
+            vm.scope.loading = true;
+            vm.transaction_id = transaction_id;
+            var vo = {
+                'transaction_id': vm.transaction_id
+            }
+
+            return GenericDataService.jx('/alarm/jxFetchConfigureData', vo)
+                .then(function(response) {
+                    vm.document_dosage = response.data.document_dosage;
+                    vm.highest_frequency = vm.fetchHighestFrequency(vm.document_dosage);
+                    vm.scope.loading = false;
+                });
+        }
+
         vm.closeModal = function() {
             document.getElementById('dosage-modal').style.display = 'none';
         };
@@ -269,8 +292,8 @@
             return GenericDataService.jx('/alarm/jxSaveDosage', vo)
                 .then(function(response) {
                     if (response.data.success) {
-                        document.getElementById('dosage-modal').style.display = 'none';
                         messageservice.putSuccess('Dosage saved successfully');
+                        window.location.href = '/alarm';
                     } else {
                         messageservice.putError(response.data.message);
                     }
@@ -317,5 +340,45 @@
                     vm.scope.loading = false;
                 });
         }
-    }]);
+
+        vm.fetchGridData = function(page = 1) {
+            vm.scope.loading = true;
+            vm.pagination.currentPage = page;
+            return GenericDataService.jx('/alarm/jxfetchData', {
+                page: vm.pagination.currentPage,
+                per_page: vm.pagination.perPage
+            })
+            .then(function(response) {
+                vm.gridData = response.data.data;
+                if (response.data.pagination) {
+                    vm.pagination = {
+                        total: response.data.pagination.total,
+                        perPage: response.data.pagination.per_page,
+                        currentPage: response.data.pagination.current_page,
+                        lastPage: response.data.pagination.last_page,
+                        from: response.data.pagination.from,
+                        to: response.data.pagination.to
+                    };
+                }
+                vm.scope.loading = false;
+            }).catch(function(error) {
+                vm.error = error.data.message;
+                messageservice.putError(vm.error);
+                vm.scope.loading = false;
+            });
+        };
+
+        vm.changePage = function(page) {
+            if (page >= 1 && page <= vm.pagination.lastPage) {
+                vm.fetchGridData(page);
+            }
+        };
+
+        vm.fetchGridData();
+  
+        vm.getMonthName = function(index) {
+            const date = new Date(2000, index, 1);
+            return date.toLocaleString('default', { month: 'long' });
+        };
+}]);
 </script>
