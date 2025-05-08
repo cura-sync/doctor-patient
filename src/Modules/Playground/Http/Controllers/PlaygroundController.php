@@ -3,7 +3,10 @@
 namespace Modules\Playground\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Transactions;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class PlaygroundController extends Controller
 {
@@ -12,54 +15,39 @@ class PlaygroundController extends Controller
      */
     public function index()
     {
-        return view('playground::index');
+        $isGoogleCalendarConnected = $this->isUserGoogleCalendarConnected;
+
+        // Playground Card Data
+        $totalTransactions = Transactions::where('user_id', Auth::user()->id)->count();
+        $mostRecentTransaction = DB::table('transactions as t')
+            ->select('d.document_name', 't.created_at')
+            ->join('documents as d', 't.document_id', '=', 'd.id')
+            ->where('t.user_id', Auth::user()->id)
+            ->orderBy('t.created_at', 'desc')
+            ->first();
+
+        $quote = $this->getQuote();
+
+        $googleCalendarConnectionStatus = DB::table('users')->where('id', Auth::user()->id)->value('google_calendar_connection_status');
+
+        return view('playground::index', compact([
+            'isGoogleCalendarConnected',
+            'totalTransactions',
+            'mostRecentTransaction',
+            'quote',
+            'googleCalendarConnectionStatus'
+        ]));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    private function getQuote()
     {
-        return view('playground::create');
-    }
+        $response = Http::withHeaders([
+            'X-Api-Key' => env('QUOTE_API_KEY'),
+        ])->get('https://api.api-ninjas.com/v1/quotes');
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('playground::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('playground::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
+        if ($response->successful()) {
+            $quote = $response->json()[0];
+            return $quote;
+        }
     }
 }

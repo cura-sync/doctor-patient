@@ -10,11 +10,11 @@ class GoogleToken extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'access_token', 'refresh_token', 'expires_in'
+        'user_id', 'access_token', 'refresh_token', 'expires_at'
     ];
 
     protected $casts = [
-        'expires_in' => 'datetime',
+        'expires_at' => 'datetime',
     ];
 
     public $timestamps = true;
@@ -24,5 +24,15 @@ class GoogleToken extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public static function isUserGoogleCalendarConnected($userId)
+    {
+        $token = self::where('user_id', $userId)->first();
+        if (!$token) {
+            return false;
+        }
+        
+        return true;
     }
 }

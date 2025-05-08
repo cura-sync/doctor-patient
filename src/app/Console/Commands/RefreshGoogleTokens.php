@@ -14,7 +14,7 @@ class RefreshGoogleTokens extends Command
 
     public function handle()
     {
-        $tokens = GoogleToken::where('expires_in', '<', now())->get();
+        $tokens = GoogleToken::where('expires_at', '<', now())->get();
 
         foreach ($tokens as $token) {
             $client = new GoogleClient();
@@ -25,7 +25,7 @@ class RefreshGoogleTokens extends Command
 
             $token->update([
                 'access_token' => $newToken['access_token'],
-                'expires_in'   => now()->addSeconds($newToken['expires_in']),
+                'expires_at'   => now()->addSeconds($newToken['expires_at']),
             ]);
         }
 

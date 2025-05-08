@@ -49,13 +49,13 @@ class GoogleCalendarController extends Controller
             [
                 'access_token'  => $token['access_token'],
                 'refresh_token' => $token['refresh_token'] ?? null,
-                'expires_in'    => now()->addSeconds($token['expires_in']),
+                'expires_at'    => now()->addSeconds($token['expires_in']),
             ]
         );
 
         User::where('id', $userId)->update(['google_calendar_connection_status' => true]);
     
-        return redirect('/user')->with('status', 'Google Calendar connected!');
+        return redirect('/playground')->with('status', 'Google Calendar connected!');
     }
 
     public static function refreshAccessToken($userId)
@@ -67,7 +67,7 @@ class GoogleCalendarController extends Controller
         }
 
         // Check if the access token is still valid
-        if (now()->lt($googleToken->expires_in)) {
+        if (now()->lt($googleToken->expires_at)) {
             return $googleToken->access_token;
         }
 
@@ -79,7 +79,7 @@ class GoogleCalendarController extends Controller
         // Update the database
         $googleToken->update([
             'access_token' => $newToken['access_token'],
-            'expires_in'   => now()->addSeconds($newToken['expires_in']),
+            'expires_at'   => now()->addSeconds($newToken['expires_at']),
         ]);
 
         return $newToken['access_token'];

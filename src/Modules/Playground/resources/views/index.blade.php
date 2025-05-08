@@ -1,7 +1,7 @@
 @extends('layouts.playground')
 
 @section('content')
-<div x-data="{}" :class="$root.sidebarOpen ? 'pl-64' : 'pl-20'" class="transition-all duration-300 bg-[#EFF2FB] min-h-screen px-10 py-8">
+<div x-data="{}" :class="$root.sidebarOpen ? 'pl-64' : 'pl-20'" class="transition-all duration-300 bg-[#EFF2FB] min-h-screen px-10 py-8" ng-app="myApp" ng-controller="MainController as main">
     <p class="text-center text-sm mb-10">{{ now()->format('F j, Y') }}</p>
     <div class="flex flex-row gap-8 mb-10">
         <!-- Left Greeting Card -->
@@ -25,18 +25,89 @@
             </a>
         </div>
     </div>
-    <!-- Calendar Cards Row -->
-    <div class="flex flex-row gap-6 ">
-        @for ($i = 0; $i < 4; $i++)
-        <div class="bg-white rounded-2xl p-6 flex flex-col gap-2 shadow-sm w-72">
+    <!-- Calendar Summary Cards -->
+    <div class="flex flex-row gap-6">
+
+        <!-- Google Calendar Sync Status (Angular Integrated) -->
+        <div class="bg-white rounded-2xl p-6 flex flex-col gap-3 shadow-sm w-72">
             <div class="flex items-center justify-between">
-                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="4"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                <svg class="w-6 h-6 text-gray-400 cursor-pointer" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"/><circle cx="19.5" cy="12" r="1.5"/><circle cx="4.5" cy="12" r="1.5"/></svg>
+                <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M16 2v4M8 2v4M3 10h18" />
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                </svg>
             </div>
-            <div class="font-semibold text-lg mt-2">Calendar</div>
-            <div class="text-gray-400 text-sm">diverse alliance of businesses from all ends of the Hookah experience, from manufacturers and importers</div>
+            <div class="font-semibold text-lg">Google Calendar</div>
+
+            <p class="text-sm text-gray-500" ng-if="!main.googleCalendarConnected">
+                You haven’t connected your Google Calendar yet.
+            </p>
+            <a href="/auth/google" ng-if="!main.googleCalendarConnected" class="text-sm bg-blue-600 text-white rounded px-4 py-2 mt-2 text-center">
+                Connect
+            </a>
+
+            <div ng-if="main.googleCalendarConnected">
+                <p class="text-sm text-gray-500">Calendar is connected.</p>
+                <!-- Angular Toggle Switch -->
+                <div class="flex items-center mt-2">
+                    <label class="inline-flex relative items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer"
+                            ng-model="main.googleCalendarConnectionStatus"
+                            ng-click="main.toggleGoogleCalendarSync()">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-all" ng-class="{'bg-blue-600': main.googleCalendarConnectionStatus, 'bg-gray-200': !main.googleCalendarConnectionStatus}"></div>
+                        <span class="ml-3 text-sm text-gray-600">
+                            Sync is <strong>@{{ main.googleCalendarConnectionStatus ? 'On' : 'Off' }}</strong>
+                        </span>
+                    </label>
+                </div>
+            </div>
         </div>
-        @endfor
+
+        <!-- Total Transactions -->
+        <div class="bg-white rounded-2xl p-6 flex flex-col gap-3 shadow-sm w-72">
+            <div class="flex items-center justify-between">
+                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M4 4h16v16H4z" />
+                </svg>
+            </div>
+            <div class="font-semibold text-lg">Total Transactions</div>
+            <p class="text-3xl font-bold text-gray-800">{{ $totalTransactions }}</p>
+        </div>
+
+        <!-- Most Recent Transaction -->
+        <div class="bg-white rounded-2xl p-6 flex flex-col gap-3 shadow-sm w-72">
+            <div class="flex items-center justify-between">
+                <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 8v4l3 3" />
+                    <circle cx="12" cy="12" r="10" />
+                </svg>
+            </div>
+            <div class="font-semibold text-lg">Latest Activity</div>
+            @if ($mostRecentTransaction)
+                <p class="text-sm text-gray-500" style="word-break: break-all;">{{ $mostRecentTransaction->document_name }}</p>
+                <p class="text-sm text-gray-400">{{ \Carbon\Carbon::parse($mostRecentTransaction->created_at)->format('M d, Y h:i A') }}</p>
+            @else
+                <p class="text-sm text-gray-400">No transactions yet.</p>
+            @endif
+        </div>
+
+        <!-- Daily Quote -->
+        <div class="bg-white rounded-2xl p-6 flex flex-col gap-3 shadow-sm w-72">
+            <div class="flex items-center justify-between">
+                <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 17h.01M15 17h.01M7 9h10v6H7z" />
+                    <path d="M7 9h10V5H7z" />
+                </svg>
+            </div>
+            <div class="font-semibold text-lg">Quote of the Day</div>
+            @if (isset($quote['quote']))
+                <p class="text-sm italic text-gray-600">“{{ $quote['quote'] }}”</p>
+                <p class="text-xs text-right text-gray-500 mt-2">– {{ $quote['author'] }}</p>
+            @else
+                <p class="text-sm text-gray-400">Unable to fetch quote.</p>
+            @endif
+        </div>
+
     </div>
 </div>
+@include('playground::angular.main')
 @endsection
