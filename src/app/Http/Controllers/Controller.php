@@ -14,7 +14,10 @@ abstract class Controller
     public function __construct()
     {
         $this->isUserLoggedIn = Auth::check();
-        $this->isUserGoogleCalendarConnected = GoogleToken::isUserGoogleCalendarConnected(Auth::user()->id);
+
+        if ($this->isUserLoggedIn) {
+            $this->isUserGoogleCalendarConnected = GoogleToken::isUserGoogleCalendarConnected(Auth::user()->id);
+        }
 
         view()->share([
             'isUserLoggedIn' => $this->isUserLoggedIn, 
